@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchNotes, createNote, deleteNote } from "@/lib/api";
+import { fetchNotes, deleteNote } from "@/lib/api";
 import NoteList from "@/components/NoteList/NoteList";
 import NoteForm from "@/components/NoteForm/NoteForm";
 
@@ -20,13 +20,6 @@ export default function NotesClient() {
     queryFn: ({ queryKey }) => {
       const [, searchTerm] = queryKey;
       return fetchNotes(searchTerm);
-    },
-  });
-
-  const createNoteMutation = useMutation({
-    mutationFn: createNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
   });
 
