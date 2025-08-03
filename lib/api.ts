@@ -44,7 +44,7 @@ export async function fetchNotes(search?: string): Promise<Note[]> {
   return response.json();
 }
 
-export async function fetchNoteById(id: string): Promise<Note> {
+export async function getSingleNote(id: string): Promise<Note> {
   const response = await fetch(`${BASE_URL}/notes/${id}`, {
     headers,
   });
@@ -80,3 +80,4 @@ export async function deleteNote(id: string): Promise<void> {
     throw new Error("Failed to delete note");
   }
 }
+export type { Note };
