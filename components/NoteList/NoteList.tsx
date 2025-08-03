@@ -6,7 +6,7 @@ import { deleteNote } from "../../lib/api";
 
 interface NoteListProps {
   notes: Note[];
-  onDelete?: (id: number) => void;
+  onDelete?: (id: string) => void;
 }
 
 const NoteList: React.FC<NoteListProps> = ({ notes }) => {
@@ -19,7 +19,7 @@ const NoteList: React.FC<NoteListProps> = ({ notes }) => {
     },
   });
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (window.confirm("Ви впевнені, що хочете видалити нотатку?")) {
       deleteMutation.mutate(id);
     }

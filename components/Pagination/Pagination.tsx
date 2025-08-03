@@ -16,7 +16,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   if (pageCount <= 1) return null;
 
   const handlePageChange = (event: { selected: number }) => {
-    onPageChange(event.selected + 1); // ReactPaginate 0-based index
+    onPageChange(event.selected + 1);
   };
 
   return (

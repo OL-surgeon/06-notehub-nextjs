@@ -1,50 +1,82 @@
-import { Note, CreateNoteData } from "@/types/note";
+import axios from "axios";
+import { Note } from "@/types/note";
+
+axios.defaults.baseURL = "https://next-docs-api.onrender.com";
+
+type NoteListResponse = {
+  notes: Note[];
+};
+
+export const getNotes = async () => {
+  const res = await axios.get<NoteListResponse>("/notes");
+  return res.data;
+};
 
 const BASE_URL = "https://notehub-public.goit.study/api";
-const TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-async function request<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${TOKEN}`,
-      ...(options.headers || {}),
-    },
-  });
-  if (!res.ok) {
-    throw new Error(`Error: ${res.status} ${res.statusText}`);
-  }
-  return res.json();
+
+import { CreateNoteData } from "@/types/note";
+
+const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
+
+if (!token) {
+  throw new Error("Missing NEXT_PUBLIC_NOTEHUB_TOKEN environment variable");
 }
 
+const headers = {
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${token}`,
+};
+
 export async function fetchNotes(search?: string): Promise<Note[]> {
-  const params = new URLSearchParams();
-  if (search) params.append("search", search);
-  const response = await fetch(`/api/notes?${params.toString()}`);
-  if (!response.ok) throw new Error("Error fetching notes");
+  const url = new URL(`${BASE_URL}/notes`);
+  if (search) {
+    url.searchParams.append("search", search);
+  }
+
+  const response = await fetch(url.toString(), {
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch notes");
+  }
+
   return response.json();
 }
 
-export async function fetchNoteById(id: number): Promise<Note> {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/${id}`
-  );
-  if (!response.ok) throw new Error("Failed to fetch note by id");
+export async function fetchNoteById(id: string): Promise<Note> {
+  const response = await fetch(`${BASE_URL}/notes/${id}`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch note by id");
+  }
+
   return response.json();
 }
 
 export async function createNote(data: CreateNoteData): Promise<Note> {
-  return request<Note>("/notes", {
+  const response = await fetch(`${BASE_URL}/notes`, {
     method: "POST",
+    headers,
     body: JSON.stringify(data),
   });
+
+  if (!response.ok) {
+    throw new Error("Failed to create note");
+  }
+
+  return response.json();
 }
 
-export async function deleteNote(id: number): Promise<void> {
-  return request<void>(`/notes/${id}`, {
+export async function deleteNote(id: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/notes/${id}`, {
     method: "DELETE",
+    headers,
   });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete note");
+  }
 }

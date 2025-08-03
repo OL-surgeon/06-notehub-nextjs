@@ -38,12 +38,10 @@ export default function NotesClient() {
   });
 
   const handleCreateSuccess = () => {
-    // можна показати toast або просто перевантажити список
     queryClient.invalidateQueries({ queryKey: ["notes"] });
   };
 
   const handleCancel = () => {
-    // можна очистити форму або закрити модалку, якщо така є
     console.log("Form cancelled");
   };
 
