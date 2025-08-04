@@ -1,56 +1,101 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchNotes, deleteNote } from "@/lib/api";
+import {
+  useQuery,
+  QueryClientProvider,
+  QueryClient,
+  hydrate,
+} from "@tanstack/react-query";
+import { useDebounce } from "use-debounce";
+import { fetchNotes } from "@/lib/api";
+import { Pagination } from "@/components/Pagination/Pagination";
+import { SearchBox } from "@/components/SearchBox/SearchBox";
 import NoteList from "@/components/NoteList/NoteList";
+import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
+import type { NoteResponse } from "@/types/note";
+import css from "../page.module.css";
 
-export default function NotesClient() {
-  const [search, setSearch] = useState("");
-  const queryClient = useQueryClient();
+interface NotesClientProps {
+  page: number;
+  perPage: number;
+  search: string;
+  dehydratedState: unknown;
+}
 
-  const {
-    data: notes,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["notes", search],
-    queryFn: ({ queryKey }) => {
-      const [, searchTerm] = queryKey;
-      return fetchNotes(searchTerm);
-    },
+export default function NotesClient({
+  page: initialPage,
+  perPage,
+  search: initialSearch,
+  dehydratedState,
+}: NotesClientProps) {
+  const [queryClient] = useState(() => {
+    const qc = new QueryClient();
+    hydrate(qc, dehydratedState);
+    return qc;
   });
 
-  const deleteNoteMutation = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-    },
+  const [page, setPage] = useState(initialPage);
+  const [search, setSearch] = useState(initialSearch);
+  const [debouncedSearch] = useDebounce(search, 500);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { data, isLoading, isError } = useQuery<NoteResponse>({
+    queryKey: ["notes", page, debouncedSearch],
+    queryFn: () => fetchNotes(page, perPage, debouncedSearch),
   });
 
-  const handleCreateSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ["notes"] });
+  const handlePageChange = (selectedPage: number) => {
+    setPage(selectedPage + 1);
   };
 
-  const handleCancel = () => {
-    console.log("Form cancelled");
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
   };
 
-  if (isLoading) return <p>Loading, please wait...</p>;
-  if (isError) return <p>Error: {(error as Error).message}</p>;
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
 
   return (
-    <>
-      <input
-        type="text"
-        placeholder="Search notes"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-      <NoteForm onSuccess={handleCreateSuccess} onCancel={handleCancel} />
-      <NoteList notes={notes || []} onDelete={deleteNoteMutation.mutate} />
-    </>
+    <QueryClientProvider client={queryClient}>
+      <div className={css.wrapper}>
+        <h1>NoteHub</h1>
+
+        <div className={css.header}>
+          <SearchBox value={search} onChange={handleSearchChange} />
+          <button className={css.button} onClick={handleOpenModal}>
+            Create note +
+          </button>
+        </div>
+
+        {isModalOpen && (
+          <Modal onClose={handleCloseModal}>
+            <NoteForm
+              onSuccess={handleCloseModal}
+              onCancel={handleCloseModal}
+            />
+          </Modal>
+        )}
+
+        {isLoading && <p className={css.centered}>Loading, please wait...</p>}
+        {isError && <p className={css.centered}>Something went wrong.</p>}
+
+        {data && data.notes && data.notes.length > 0 && (
+          <NoteList notes={data.notes} />
+        )}
+
+        {data && data.totalPages > 1 && (
+          <div className={css.centered}>
+            <Pagination
+              pageCount={data.totalPages}
+              currentPage={page}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
+      </div>
+    </QueryClientProvider>
   );
 }

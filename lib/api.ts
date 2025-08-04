@@ -1,83 +1,45 @@
 import axios from "axios";
-import { Note } from "@/types/note";
+import type { Note, NewNote, NoteResponse } from "../types/note";
 
-axios.defaults.baseURL = "https://next-docs-api.onrender.com";
-
-type NoteListResponse = {
-  notes: Note[];
-};
-
-export const getNotes = async () => {
-  const res = await axios.get<NoteListResponse>("/notes");
-  return res.data;
-};
-
+const API_TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 const BASE_URL = "https://notehub-public.goit.study/api";
 
-import { CreateNoteData } from "@/types/note";
+const instance = axios.create({
+  baseURL: BASE_URL,
+  headers: { Authorization: `Bearer ${API_TOKEN}` },
+});
 
-const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-
-if (!token) {
-  throw new Error("Missing NEXT_PUBLIC_NOTEHUB_TOKEN environment variable");
+interface FetchNotesParams {
+  page: number;
+  perPage: number;
+  search?: string;
 }
 
-const headers = {
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${token}`,
-};
-
-export async function fetchNotes(search?: string): Promise<Note[]> {
-  const url = new URL(`${BASE_URL}/notes`);
-  if (search) {
-    url.searchParams.append("search", search);
+export async function fetchNotes(
+  page = 1,
+  perPage = 12,
+  search = ""
+): Promise<NoteResponse> {
+  const params: FetchNotesParams = { page, perPage };
+  if (search.trim()) {
+    params.search = search.trim();
   }
 
-  const response = await fetch(url.toString(), {
-    headers,
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch notes");
-  }
-
-  return response.json();
+  const { data } = await instance.get<NoteResponse>("/notes", { params });
+  return data;
 }
 
 export async function fetchNoteById(id: string): Promise<Note> {
-  const response = await fetch(`${BASE_URL}/notes/${id}`, {
-    headers,
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch note by id");
-  }
-
-  return response.json();
+  const { data } = await instance.get<Note>(`/notes/${id}`);
+  return data;
 }
 
-export async function createNote(data: CreateNoteData): Promise<Note> {
-  const response = await fetch(`${BASE_URL}/notes`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to create note");
-  }
-
-  return response.json();
+export async function createNote(newNote: NewNote): Promise<Note> {
+  const { data } = await instance.post<Note>("/notes", newNote);
+  return data;
 }
 
-export async function deleteNote(id: string): Promise<void> {
-  const response = await fetch(`${BASE_URL}/notes/${id}`, {
-    method: "DELETE",
-    headers,
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete note");
-  }
+export async function deleteNote(noteId: string): Promise<Note> {
+  const { data } = await instance.delete<Note>(`/notes/${noteId}`);
+  return data;
 }
-export type { Note };

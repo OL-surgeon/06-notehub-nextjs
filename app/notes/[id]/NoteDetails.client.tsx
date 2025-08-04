@@ -3,14 +3,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-
+import { useParams } from "next/navigation";
 import { fetchNoteById } from "@/lib/api";
 
-type NoteDetailsClientProps = {
-  id: string;
-};
+const NoteDetailsClient = () => {
+  const { id } = useParams<{ id: string }>();
 
-const NoteDetailsClient = ({ id }: NoteDetailsClientProps) => {
   const {
     data: note,
     isLoading,

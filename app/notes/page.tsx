@@ -1,26 +1,30 @@
-"use client";
+import { fetchNotes } from "@/lib/api";
+import { dehydrate, QueryClient } from "@tanstack/react-query";
+import NotesClient from "@/app/notes/Notes.client";
 
-import { useState } from "react";
-import NoteList from "@/components/NoteList/NoteList";
-import { getNotes, Note } from "@/lib/api";
+export default async function NotesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string }>;
+}) {
+  const actualSearchParams = searchParams ? await searchParams : undefined;
+  const search = actualSearchParams?.search || "";
+  const page = 1;
+  const perPage = 12;
 
-const Notes = () => {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const queryClient = new QueryClient();
 
-  const handleClick = async () => {
-    const response = await getNotes();
-    if (response?.notes) {
-      setNotes(response.notes);
-    }
-  };
+  await queryClient.prefetchQuery({
+    queryKey: ["notes", page, search],
+    queryFn: () => fetchNotes(page, perPage, search),
+  });
 
   return (
-    <section>
-      <h1>Notes List</h1>
-      <button onClick={handleClick}>Get my notes</button>
-      {notes.length > 0 && <NoteList notes={notes} />}
-    </section>
+    <NotesClient
+      page={page}
+      perPage={perPage}
+      search={search}
+      dehydratedState={dehydrate(queryClient)}
+    />
   );
-};
-
-export default Notes;
+}
