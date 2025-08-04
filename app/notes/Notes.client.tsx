@@ -66,7 +66,7 @@ export default function NotesClient({
         <div className={css.header}>
           <SearchBox value={search} onChange={handleSearchChange} />
           <button className={css.button} onClick={handleOpenModal}>
-            Create note +
+            Create note
           </button>
         </div>
 
