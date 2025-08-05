@@ -10,7 +10,7 @@ const Notes = async () => {
   return (
     <section>
       <h1>Notes List</h1>
-      {response?.notes?.length > 0 && <NoteList notes={response.notes} />}
+      <NoteList notes={response?.notes ?? []} />
     </section>
   );
 };
