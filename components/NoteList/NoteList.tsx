@@ -32,7 +32,7 @@ export default function NoteList({ notes }: NoteListProps) {
             <button
               className={css.button}
               disabled={mutation.isPending}
-              onClick={() => mutation.mutate(note.id.toString())}
+              onClick={() => mutation.mutate(note.id)}
             >
               Delete
             </button>

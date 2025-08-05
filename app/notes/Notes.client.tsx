@@ -10,7 +10,7 @@ import { SearchBox } from "@/components/SearchBox/SearchBox";
 import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
 import css from "../page.module.css";
-import type { NoteResponse } from "@/types/note";
+import type { NoteResponse } from "@/lib/api";
 
 interface NotesClientProps {
   page: number;

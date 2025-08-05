@@ -14,10 +14,7 @@ export interface CreateNoteData {
   content: string;
   tag: NoteTag;
 }
-// export interface NoteResponse {
-//   notes: Note[];
-//   totalPages: number;
-// }
+
 export interface NewNote {
   title: string;
   content: string;

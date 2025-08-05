@@ -1,6 +1,10 @@
 import axios from "axios";
-import type { Note, NewNote, NoteResponse } from "../types/note";
+import type { Note, NewNote } from "../types/note";
 
+export interface NoteResponse {
+  notes: Note[];
+  totalPages: number;
+}
 const API_TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 const BASE_URL = "https://notehub-public.goit.study/api";
 
