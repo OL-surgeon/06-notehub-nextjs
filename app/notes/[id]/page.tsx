@@ -24,7 +24,7 @@ export default async function NoteDetailsPage({
 
   return (
     <HydrationBoundary state={dehydratedState}>
-      <NoteDetailsClient id={""} />
+      <NoteDetailsClient id={actualParams.id} />
     </HydrationBoundary>
   );
 }
